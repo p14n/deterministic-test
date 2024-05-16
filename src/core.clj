@@ -103,20 +103,20 @@
 
 (defn customer-repository
   [{:keys [type customer-id email verified blacklisted]} _]
-  (do (case type
-        :create-customer-requested
-        (swap! customer merge {:customer-id customer-id :email email})
-        :email-verification-sent
-        (swap! customer assoc :email-status "pending")
-        :email-verification-completed
-        (when (and verified
-                   (-> @customer :email-status (not= "blocked")))
-          (swap! customer assoc :email-status "active"))
-        :email-blacklist-completed
-        (when blacklisted
-          (swap! customer assoc :email-status "blocked"))
-        nil)
-      nil))
+  (case type
+    :create-customer-requested
+    (swap! customer merge {:customer-id customer-id :email email})
+    :email-verification-sent
+    (swap! customer assoc :email-status "pending")
+    :email-verification-completed
+    (when (and verified
+               (-> @customer :email-status (not= "blocked")))
+      (swap! customer assoc :email-status "active"))
+    :email-blacklist-completed
+    (when blacklisted
+      (swap! customer assoc :email-status "blocked"))
+    nil)
+  nil)
 
 (m/=> customer-repository
       [:function
